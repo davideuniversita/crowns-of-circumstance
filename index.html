@@ -231,7 +231,7 @@ body { font-family: 'Georgia', serif; background: #1a1410; color: #e8dcc4; overf
 
 <canvas id="gameCanvas"></canvas>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r150/three.min.js"></script>
 <script>
 // ============ DIALOGUE DATA ============
 const DIALOGUE_DATA = {
@@ -418,71 +418,76 @@ class Game {
     }
 
     async init() {
-        this.showLoading('Initializing 3D engine...', 10);
-        await this.sleep(300);
+        try {
+            this.showLoading('Initializing 3D engine...', 10);
+            await this.sleep(300);
 
-        this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x87CEEB);
-        this.scene.fog = new THREE.Fog(0x87CEEB, 80, 280);
+            this.scene = new THREE.Scene();
+            this.scene.background = new THREE.Color(0x87CEEB);
+            this.scene.fog = new THREE.Fog(0x87CEEB, 80, 280);
 
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 
-        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            this.renderer.shadowMap.enabled = true;
+            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-        this.showLoading('Creating atmospheric lighting...', 25);
-        await this.sleep(300);
+            this.showLoading('Creating atmospheric lighting...', 25);
+            await this.sleep(300);
 
-        // Lighting
-        const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-        this.scene.add(ambient);
+            // Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            this.scene.add(ambient);
 
-        const sun = new THREE.DirectionalLight(0xffffcc, 0.9);
-        sun.position.set(100, 150, 50);
-        sun.castShadow = true;
-        sun.shadow.mapSize.width = 2048;
-        sun.shadow.mapSize.height = 2048;
-        sun.shadow.camera.left = -200;
-        sun.shadow.camera.right = 200;
-        sun.shadow.camera.top = 200;
-        sun.shadow.camera.bottom = -200;
-        sun.shadow.camera.far = 500;
-        this.scene.add(sun);
+            const sun = new THREE.DirectionalLight(0xffffcc, 0.9);
+            sun.position.set(100, 150, 50);
+            sun.castShadow = true;
+            sun.shadow.mapSize.width = 2048;
+            sun.shadow.mapSize.height = 2048;
+            sun.shadow.camera.left = -200;
+            sun.shadow.camera.right = 200;
+            sun.shadow.camera.top = 200;
+            sun.shadow.camera.bottom = -200;
+            sun.shadow.camera.far = 500;
+            this.scene.add(sun);
 
-        // Terrain
-        this.showLoading('Generating medieval kingdom terrain...', 40);
-        await this.sleep(300);
-        this.createTerrain();
+            // Terrain
+            this.showLoading('Generating medieval kingdom terrain...', 40);
+            await this.sleep(300);
+            this.createTerrain();
 
-        // Districts
-        this.showLoading('Constructing city districts...', 55);
-        await this.sleep(300);
-        this.createDistricts();
-        this.createRoads();
+            // Districts
+            this.showLoading('Constructing city districts...', 55);
+            await this.sleep(300);
+            this.createDistricts();
+            this.createRoads();
 
-        // Wilderness
-        this.showLoading('Planting wilderness zones...', 70);
-        await this.sleep(300);
-        this.createWilderness();
+            // Wilderness
+            this.showLoading('Planting wilderness zones...', 70);
+            await this.sleep(300);
+            this.createWilderness();
 
-        // Player
-        this.showLoading('Creating player character...', 80);
-        await this.sleep(200);
-        this.createPlayer();
+            // Player
+            this.showLoading('Creating player character...', 80);
+            await this.sleep(200);
+            this.createPlayer();
 
-        // NPCs
-        this.showLoading('Placing NPCs across the kingdom...', 90);
-        await this.sleep(300);
-        this.createNPCs();
+            // NPCs
+            this.showLoading('Placing NPCs across the kingdom...', 90);
+            await this.sleep(300);
+            this.createNPCs();
 
-        // Controls
-        this.setupControls();
+            // Controls
+            this.setupControls();
 
-        this.showLoading('Kingdom of Thornhaven ready!', 100);
-        await this.sleep(600);
-        this.hideLoading();
+            this.showLoading('Kingdom of Thornhaven ready!', 100);
+            await this.sleep(600);
+            this.hideLoading();
+        } catch (error) {
+            console.error('Error during initialization:', error);
+            alert('Error loading game: ' + error.message);
+        }
     }
 
     createTerrain() {
@@ -493,7 +498,7 @@ class Game {
             const y = positions.getY(i);
             const dist = Math.sqrt(x*x + y*y);
             let h = Math.sin(x*0.02)*3 + Math.cos(y*0.02)*3;
-            if (dist < 150) h *= 0.1; // flatten city area
+            if (dist < 150) h *= 0.1;
             positions.setZ(i, h);
         }
         terrainGeo.computeVertexNormals();
@@ -513,7 +518,6 @@ class Game {
     }
 
     buildDistrict(name, cx, cz, size, color, type) {
-        // Plaza
         const plazaGeo = new THREE.BoxGeometry(size, 0.2, size);
         const plazaMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
         const plaza = new THREE.Mesh(plazaGeo, plazaMat);
@@ -521,7 +525,6 @@ class Game {
         plaza.receiveShadow = true;
         this.scene.add(plaza);
 
-        // Buildings around perimeter
         const count = 10;
         for (let i = 0; i < count; i++) {
             const angle = (i/count) * Math.PI * 2;
@@ -531,7 +534,6 @@ class Game {
             this.buildBuilding(x, z, type);
         }
 
-        // Landmark
         this.buildLandmark(cx, cz, type);
     }
 
@@ -557,7 +559,6 @@ class Game {
         walls.receiveShadow = true;
         this.scene.add(walls);
 
-        // Roof
         const roofGeo = new THREE.ConeGeometry(w*0.8, h*0.3, 4);
         const roofMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
         const roof = new THREE.Mesh(roofGeo, roofMat);
@@ -566,7 +567,6 @@ class Game {
         roof.castShadow = true;
         this.scene.add(roof);
 
-        // Windows
         const winMat = new THREE.MeshStandardMaterial({
             color: 0x4a6a8a, emissive: 0x2a4a6a, emissiveIntensity: 0.4
         });
@@ -603,7 +603,6 @@ class Game {
                 });
                 mesh = new THREE.Mesh(cGeo, cMat);
                 mesh.position.set(cx, 2.5, cz);
-                // Forge light
                 const fLight = new THREE.PointLight(0xff6600, 1, 20);
                 fLight.position.set(cx, 3, cz);
                 this.scene.add(fLight);
@@ -633,14 +632,12 @@ class Game {
     }
 
     createWilderness() {
-        // Eastmarch Road
         const pathMat = new THREE.MeshStandardMaterial({ color: 0x8b7355, roughness: 0.95 });
         const path = new THREE.Mesh(new THREE.BoxGeometry(200, 0.1, 5), pathMat);
         path.position.set(150, 0.1, 0);
         path.receiveShadow = true;
         this.scene.add(path);
 
-        // Western Forest
         const treeMat = new THREE.MeshStandardMaterial({ color: 0x2d4a2b });
         const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3f35 });
         for (let i = 0; i < 60; i++) {
@@ -658,11 +655,24 @@ class Game {
     }
 
     createPlayer() {
-        const bodyGeo = new THREE.CapsuleGeometry(0.5, 1.2, 8, 16);
+        // Use cylinder + sphere instead of CapsuleGeometry for compatibility
+        const group = new THREE.Group();
+        
+        const bodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 16);
         const bodyMat = new THREE.MeshStandardMaterial({ color: 0x4a5a6a });
-        this.player.mesh = new THREE.Mesh(bodyGeo, bodyMat);
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 0.6;
+        body.castShadow = true;
+        group.add(body);
+        
+        const headGeo = new THREE.SphereGeometry(0.3, 16, 16);
+        const head = new THREE.Mesh(headGeo, bodyMat);
+        head.position.y = 1.5;
+        head.castShadow = true;
+        group.add(head);
+        
+        this.player.mesh = group;
         this.player.mesh.position.copy(this.player.position);
-        this.player.mesh.castShadow = true;
         this.scene.add(this.player.mesh);
     }
 
@@ -691,7 +701,8 @@ class Game {
         ];
 
         npcData.forEach(data => {
-            const bodyGeo = new THREE.CapsuleGeometry(0.4, 1.1, 8, 16);
+            const group = new THREE.Group();
+            
             let color;
             switch(data.type) {
                 case 'guard': color = 0x8b4513; break;
@@ -702,13 +713,25 @@ class Game {
                 case 'monk': color = 0x8b6914; break;
                 default: color = 0x708090;
             }
+            
             const bodyMat = new THREE.MeshStandardMaterial({ color });
-            const mesh = new THREE.Mesh(bodyGeo, bodyMat);
-            mesh.position.set(data.pos[0], 1.5, data.pos[1]);
-            mesh.castShadow = true;
-            mesh.userData = { name: data.name, dialogue: data.dialogue, isNPC: true };
-            this.scene.add(mesh);
-            this.npcs.push(mesh);
+            
+            const bodyGeo = new THREE.CylinderGeometry(0.4, 0.4, 1.1, 16);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.55;
+            body.castShadow = true;
+            group.add(body);
+            
+            const headGeo = new THREE.SphereGeometry(0.25, 16, 16);
+            const head = new THREE.Mesh(headGeo, bodyMat);
+            head.position.y = 1.35;
+            head.castShadow = true;
+            group.add(head);
+            
+            group.position.set(data.pos[0], 0, data.pos[1]);
+            group.userData = { name: data.name, dialogue: data.dialogue, isNPC: true };
+            this.scene.add(group);
+            this.npcs.push(group);
         });
     }
 
@@ -740,13 +763,24 @@ class Game {
 
         this.canvas.addEventListener('click', (e) => {
             if (this.inDialogue) return;
-            // Raycast for NPC
             const mouse2 = new THREE.Vector2(
                 (e.clientX/window.innerWidth)*2-1,
                 -(e.clientY/window.innerHeight)*2+1
             );
             this.raycaster.setFromCamera(mouse2, this.camera);
-            const hits = this.raycaster.intersectObjects(this.npcs);
+            
+            // Check all NPC children
+            const allNPCMeshes = [];
+            this.npcs.forEach(npc => {
+                npc.traverse(child => {
+                    if (child.isMesh) {
+                        child.userData = npc.userData;
+                        allNPCMeshes.push(child);
+                    }
+                });
+            });
+            
+            const hits = this.raycaster.intersectObjects(allNPCMeshes);
             if (hits.length > 0 && hits[0].distance < 10) {
                 this.startDialogue(hits[0].object.userData);
             }
@@ -758,7 +792,6 @@ class Game {
             this.renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // UI buttons
         document.getElementById('newGameBtn').addEventListener('click', () => this.startGame());
         document.getElementById('creditsBtn').addEventListener('click', () => {
             alert('Crowns of Circumstance\nPhase 1: World Foundation\n\nA medieval RPG of choice and consequence.');
@@ -789,7 +822,6 @@ class Game {
 
         const dt = Math.min(this.clock.getDelta(), 0.1);
 
-        // Movement
         if (!this.inDialogue) {
             const move = new THREE.Vector3();
             if (this.keys['w']) move.z -= 1;
@@ -812,7 +844,6 @@ class Game {
             this.player.mesh.position.copy(this.player.position);
         }
 
-        // Camera
         const dist = 12;
         const height = 4 + Math.sin(this.cameraPitch) * 8;
         const camX = this.player.position.x + Math.sin(this.cameraAngle) * dist;
@@ -820,7 +851,6 @@ class Game {
         this.camera.position.set(camX, this.player.position.y + height, camZ);
         this.camera.lookAt(this.player.position.x, this.player.position.y + 1.5, this.player.position.z);
 
-        // District detection
         const pos = this.player.position;
         let district = "Thornhaven Outskirts";
         if (pos.x > 10 && pos.x < 90 && pos.z > -90 && pos.z < -10) district = "Noble Quarter";
@@ -835,7 +865,6 @@ class Game {
             document.getElementById('locationName').textContent = district;
         }
 
-        // NPC proximity label
         let nearest = null;
         let nearestDist = 8;
         for (let npc of this.npcs) {
@@ -889,7 +918,6 @@ class Game {
     }
 
     handleChoice(choice, npcName) {
-        // Apply reputation
         if (choice.reputation) {
             for (let [faction, change] of Object.entries(choice.reputation)) {
                 this.player.stats.reputation[faction] += change;
@@ -901,7 +929,6 @@ class Game {
         }
         this.updateStatsUI();
 
-        // Show response with end button
         document.getElementById('dialogueText').textContent = choice.response;
         const container = document.getElementById('dialogueChoices');
         container.innerHTML = '';
