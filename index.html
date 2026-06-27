@@ -1,1006 +1,322 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crowns of Circumstance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Georgia', serif; background: #1a1410; color: #e8dcc4; overflow: hidden; }
-#gameCanvas { display: block; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 0; }
+    body { 
+        font-family: 'Georgia', serif; 
+        background: #0c0804; 
+        color: #e8d5b7; 
+        margin:0; 
+        padding:0; 
+    }
+    #game {
+        max-width: 1100px;
+        margin: 30px auto;
+        background: #2c1f14;
+        border: 8px solid #8b6914;
+        border-radius: 15px;
+        box-shadow: 0 0 50px rgba(139, 105, 20, 0.9);
+        overflow: hidden;
+    }
+    header {
+        background: linear-gradient(#5c3a20, #2c1f14);
+        padding: 25px;
+        text-align: center;
+        border-bottom: 6px solid #d4af37;
+    }
+    h1 { 
+        color: #d4af37; 
+        font-size: 3.2em; 
+        margin:0; 
+        text-shadow: 4px 4px 10px #000;
+    }
+    .subtitle { color: #b8956f; font-style: italic; font-size: 1.3em; margin-top: 8px; }
 
-.menu-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(135deg, #2a1810 0%, #1a1410 100%);
-    display: flex; justify-content: center; align-items: center; z-index: 1000;
-}
-.menu-content {
-    text-align: center; max-width: 600px; padding: 40px;
-    background: rgba(0,0,0,0.7); border: 3px solid #8b6914;
-    border-radius: 10px; box-shadow: 0 0 30px rgba(139,105,20,0.5);
-}
-.menu-content h1 {
-    font-size: 3em; color: #d4af37; text-shadow: 2px 2px 4px #000;
-    margin-bottom: 10px; letter-spacing: 2px;
-}
-.menu-content h2 { font-size: 2.5em; color: #d4af37; margin-bottom: 30px; }
-.subtitle { font-size: 1.2em; color: #b8956f; margin-bottom: 40px; font-style: italic; }
-.version { margin-top: 30px; font-size: 0.9em; color: #8b6914; }
-.menu-buttons { display: flex; flex-direction: column; gap: 15px; }
-.menu-btn {
-    padding: 15px 40px; font-size: 1.3em; font-family: 'Georgia', serif;
-    background: linear-gradient(135deg, #8b6914 0%, #6b5010 100%);
-    color: #fff; border: 2px solid #d4af37; border-radius: 5px; cursor: pointer;
-    transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
-}
-.menu-btn:hover {
-    background: linear-gradient(135deg, #d4af37 0%, #8b6914 100%);
-    transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212,175,55,0.4);
-}
-
-.hud { position: fixed; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 100; }
-.hud-top {
-    display: flex; justify-content: space-between; padding: 20px;
-    background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
-}
-.player-info {
-    background: rgba(0,0,0,0.7); padding: 15px 20px;
-    border: 2px solid #8b6914; border-radius: 5px;
-}
-.player-info h3 { color: #d4af37; font-size: 1.5em; margin-bottom: 5px; }
-.player-info p { margin: 3px 0; font-size: 1em; }
-.controls-hint {
-    background: rgba(0,0,0,0.7); padding: 15px 20px;
-    border: 2px solid #8b6914; border-radius: 5px; max-width: 500px;
-}
-.controls-hint p { font-size: 0.9em; color: #b8956f; }
-.location-display {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.8); padding: 15px 40px;
-    border: 2px solid #8b6914; border-radius: 25px;
-    font-size: 1.5em; color: #d4af37; text-align: center; z-index: 100;
-}
-
-.dialogue-box {
-    position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%);
-    width: 80%; max-width: 800px; background: rgba(0,0,0,0.95);
-    border: 3px solid #8b6914; border-radius: 10px; padding: 25px;
-    z-index: 500; box-shadow: 0 0 30px rgba(0,0,0,0.8);
-}
-.npc-name {
-    color: #d4af37; font-size: 1.5em; margin-bottom: 15px;
-    border-bottom: 1px solid #8b6914; padding-bottom: 10px;
-}
-.dialogue-text { font-size: 1.2em; line-height: 1.6; margin-bottom: 20px; color: #e8dcc4; }
-.dialogue-choices { display: flex; flex-direction: column; gap: 10px; }
-.choice-btn {
-    padding: 12px 20px; font-size: 1.1em; font-family: 'Georgia', serif;
-    background: rgba(139,105,20,0.3); color: #e8dcc4;
-    border: 2px solid #8b6914; border-radius: 5px; cursor: pointer;
-    text-align: left; transition: all 0.2s;
-}
-.choice-btn:hover {
-    background: rgba(139,105,20,0.6); border-color: #d4af37; transform: translateX(10px);
-}
-
-.character-sheet {
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
-    width: 90%; max-width: 700px; max-height: 90vh;
-    background: rgba(10,5,0,0.98); border: 3px solid #d4af37;
-    border-radius: 10px; padding: 30px; z-index: 1000;
-    overflow-y: auto; box-shadow: 0 0 50px rgba(0,0,0,0.9);
-}
-.sheet-content h2 {
-    color: #d4af37; text-align: center; font-size: 2em;
-    margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;
-}
-.sheet-content hr { border: none; border-top: 1px solid #8b6914; margin: 20px 0; }
-.stat-section { margin: 20px 0; }
-.stat-section h3 {
-    color: #d4af37; font-size: 1.4em; margin-bottom: 15px;
-    border-bottom: 1px solid #8b6914; padding-bottom: 5px;
-}
-.stat-section p { font-size: 1.1em; margin: 10px 0; line-height: 1.6; }
-.rep-bar { margin: 15px 0; }
-.rep-bar label { display: block; color: #b8956f; font-size: 1em; margin-bottom: 5px; }
-.bar {
-    width: 100%; height: 20px; background: rgba(139,105,20,0.2);
-    border: 1px solid #8b6914; border-radius: 10px; overflow: hidden; margin-bottom: 5px;
-}
-.bar-fill {
-    height: 100%; background: linear-gradient(90deg, #8b6914 0%, #d4af37 100%);
-    transition: width 0.5s;
-}
-.rep-bar span { font-size: 0.9em; color: #b8956f; }
-.close-btn {
-    position: absolute; top: 15px; right: 15px; background: none; border: none;
-    color: #d4af37; font-size: 2em; cursor: pointer; transition: all 0.2s;
-}
-.close-btn:hover { color: #fff; transform: rotate(90deg); }
-
-.loading-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #1a1410; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; z-index: 2000;
-}
-.loading-screen h2 { color: #d4af37; font-size: 2.5em; margin-bottom: 30px; }
-.loading-bar {
-    width: 500px; height: 30px; background: rgba(139,105,20,0.2);
-    border: 2px solid #8b6914; border-radius: 15px; overflow: hidden; margin-bottom: 20px;
-}
-.loading-fill {
-    height: 100%; width: 0%; background: linear-gradient(90deg, #8b6914 0%, #d4af37 100%);
-    transition: width 0.3s;
-}
-.loading-screen p { color: #b8956f; font-size: 1.2em; font-style: italic; }
-
-.crosshair {
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
-    width: 20px; height: 20px; pointer-events: none; z-index: 50;
-    border: 2px solid rgba(212,175,55,0.6); border-radius: 50%;
-}
-.crosshair.active { border-color: #d4af37; box-shadow: 0 0 10px #d4af37; }
-
-.npc-label {
-    position: fixed; background: rgba(0,0,0,0.8); color: #d4af37;
-    padding: 5px 12px; border: 1px solid #8b6914; border-radius: 5px;
-    font-size: 0.9em; pointer-events: none; z-index: 60; white-space: nowrap;
-}
+    .location {
+        text-align: center;
+        font-size: 1.7em;
+        color: #d4af37;
+        padding: 18px;
+        background: #1a1208;
+        border-bottom: 4px solid #8b6914;
+    }
+    .container { display: flex; min-height: 75vh; }
+    .sidebar {
+        width: 290px;
+        background: #1a1208;
+        padding: 25px;
+        border-right: 5px solid #8b6914;
+    }
+    .main { flex: 1; padding: 30px; display: flex; flex-direction: column; }
+    .log {
+        flex: 1;
+        background: #0f0a05;
+        border: 4px solid #8b6914;
+        padding: 25px;
+        overflow-y: auto;
+        line-height: 1.7;
+        font-size: 1.2em;
+    }
+    .choices { 
+        margin-top: 25px; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 14px; 
+    }
+    button {
+        background: #5c4033;
+        color: #ffe5b4;
+        border: 3px solid #d4af37;
+        padding: 18px 22px;
+        font-size: 1.15em;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    button:hover {
+        background: #8b6914;
+        transform: translateX(15px);
+        box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+    }
+    .stat { margin: 16px 0; }
+    .stat label { 
+        display: block; 
+        color: #d4af37; 
+        font-size: 1.05em; 
+        margin-bottom: 6px;
+    }
+    .bar { 
+        height: 26px; 
+        background: #3a2a20; 
+        border: 2px solid #8b6914; 
+        border-radius: 6px; 
+        overflow: hidden; 
+    }
+    .fill { 
+        height: 100%; 
+        background: linear-gradient(90deg, #8b6914, #f0c040); 
+        transition: width 0.8s ease;
+    }
+    .gold { 
+        font-size: 1.8em; 
+        color: #ffd700; 
+        font-weight: bold; 
+        margin: 20px 0;
+    }
+    .ending {
+        padding: 35px;
+        background: #1a1208;
+        border: 6px solid #d4af37;
+        text-align: center;
+        font-size: 1.6em;
+        line-height: 1.6;
+        margin: 20px 0;
+    }
 </style>
 </head>
 <body>
 
-<div id="mainMenu" class="menu-screen">
-    <div class="menu-content">
+<div id="game">
+    <header>
         <h1>CROWNS OF CIRCUMSTANCE</h1>
-        <p class="subtitle">A Medieval RPG of Choice & Consequence</p>
-        <div class="menu-buttons">
-            <button id="newGameBtn" class="menu-btn">New Game</button>
-            <button id="creditsBtn" class="menu-btn">Credits</button>
+        <p class="subtitle">Un RPG di scelte, reputazione e conseguenze</p>
+    </header>
+    
+    <div class="location" id="location">📍 Noble Quarter — Mattina</div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <h2 style="color:#d4af37; text-align:center;">REPUTAZIONE</h2>
+            <div class="stat"><label>Crown Loyalty</label><div class="bar"><div id="barCrown" class="fill" style="width:25%"></div></div><span id="valCrown">50</span></div>
+            <div class="stat"><label>Guild Favor</label><div class="bar"><div id="barGuild" class="fill" style="width:25%"></div></div><span id="valGuild">50</span></div>
+            <div class="stat"><label>Shadow Intrigue</label><div class="bar"><div id="barShadow" class="fill" style="width:0%"></div></div><span id="valShadow">0</span></div>
+            <div class="stat"><label>Common Folk Trust</label><div class="bar"><div id="barFolk" class="fill" style="width:25%"></div></div><span id="valFolk">50</span></div>
+            <div class="stat"><label>Religious Authority</label><div class="bar"><div id="barReligion" class="fill" style="width:25%"></div></div><span id="valReligion">50</span></div>
+            
+            <hr style="border-color:#8b6914;margin:25px 0;">
+            <p><strong>Stato:</strong> <span id="tier">Cittadino Rispettato (Tier 4)</span></p>
+            <p class="gold">Oro: <span id="gold">500</span></p>
+            <p><strong>Giorni:</strong> <span id="days">3</span></p>
         </div>
-        <p class="version">Phase 1: World Foundation v0.1.0</p>
-    </div>
-</div>
 
-<div id="gameHUD" class="hud" style="display:none;">
-    <div class="hud-top">
-        <div class="player-info">
-            <h3 id="playerName">Noble Citizen</h3>
-            <p id="playerStatus">Tier 4: Respected Citizen</p>
-            <p id="playerGold">Gold: 500</p>
-        </div>
-        <div class="controls-hint">
-            <p>WASD: Move | Mouse: Look | Click NPC: Talk | TAB: Sheet | ESC: Menu</p>
-        </div>
-    </div>
-    <div id="locationName" class="location-display">Noble Quarter</div>
-</div>
-
-<div class="crosshair" id="crosshair" style="display:none;"></div>
-<div id="npcLabel" class="npc-label" style="display:none;"></div>
-
-<div id="dialogueBox" class="dialogue-box" style="display:none;">
-    <h3 id="npcName" class="npc-name">NPC</h3>
-    <p id="dialogueText" class="dialogue-text">Text</p>
-    <div id="dialogueChoices" class="dialogue-choices"></div>
-</div>
-
-<div id="characterSheet" class="character-sheet" style="display:none;">
-    <div class="sheet-content">
-        <button id="closeSheet" class="close-btn">✕</button>
-        <h2>CHARACTER STATUS</h2>
-        <hr>
-        <div class="stat-section">
-            <h3>Social Standing</h3>
-            <p><strong>Tier:</strong> <span id="sheetTier">Respected Citizen (Tier 4)</span></p>
-            <p><strong>Wealth:</strong> <span id="sheetGold">500 gold</span></p>
-            <p><strong>Debt:</strong> <span id="sheetDebt">0 gold</span></p>
-        </div>
-        <hr>
-        <div class="stat-section">
-            <h3>Reputation Scores</h3>
-            <div class="rep-bar"><label>Crown Loyalty</label><div class="bar"><div id="repCrown" class="bar-fill" style="width:25%"></div></div><span id="repCrownText">50/200</span></div>
-            <div class="rep-bar"><label>Guild Favor</label><div class="bar"><div id="repGuild" class="bar-fill" style="width:25%"></div></div><span id="repGuildText">50/200</span></div>
-            <div class="rep-bar"><label>Shadow Intrigue</label><div class="bar"><div id="repShadow" class="bar-fill" style="width:0%"></div></div><span id="repShadowText">0/200</span></div>
-            <div class="rep-bar"><label>Common Folk Trust</label><div class="bar"><div id="repFolk" class="bar-fill" style="width:25%"></div></div><span id="repFolkText">50/200</span></div>
-            <div class="rep-bar"><label>Religious Authority</label><div class="bar"><div id="repReligion" class="bar-fill" style="width:25%"></div></div><span id="repReligionText">50/200</span></div>
-        </div>
-        <hr>
-        <div class="stat-section">
-            <h3>Active Quests</h3>
-            <p id="questList">• Prologue: The Morning the Duchess Died (Phase 2)</p>
+        <div class="main">
+            <div id="log" class="log">
+                Le campane della cattedrale suonano a morto.<br><br>
+                Un servo entra di corsa: <strong>«Mio signore! La Duchessa Alwyn è stata trovata morta questa mattina!»</strong><br><br>
+                Tu sai più di quanto dovresti… l’ultima volta che l’hai vista era per una questione di terre molto delicata.
+            </div>
+            <div id="choices" class="choices"></div>
         </div>
     </div>
 </div>
 
-<div id="pauseMenu" class="menu-screen" style="display:none;">
-    <div class="menu-content">
-        <h2>PAUSED</h2>
-        <div class="menu-buttons">
-            <button id="resumeBtn" class="menu-btn">Resume</button>
-            <button id="quitBtn" class="menu-btn">Quit to Menu</button>
-        </div>
-    </div>
-</div>
-
-<div id="loadingScreen" class="loading-screen">
-    <h2>Loading Thornhaven...</h2>
-    <div class="loading-bar"><div id="loadingProgress" class="loading-fill"></div></div>
-    <p id="loadingText">Initializing medieval kingdom...</p>
-</div>
-
-<canvas id="gameCanvas"></canvas>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r150/three.min.js"></script>
 <script>
-// ============ DIALOGUE DATA ============
-const DIALOGUE_DATA = {
-    guardCaptain: {
-        name: "Guard Captain Thorne",
-        opening: "Citizen. The city is on edge after the Duchess's death. We're questioning everyone who had contact with her. State your business.",
-        choices: [
-            { text: "I heard about the tragedy. How can I help?", response: "Your cooperation is noted. Report anything suspicious to the Magistrate.", reputation: { crown: 5 } },
-            { text: "I don't know anything about it.", response: "Everyone says that. Keep your eyes open. Crime doesn't rest.", reputation: {} },
-            { text: "Sounds like a cover-up to me.", response: "*narrows eyes* Watch your tongue. Accusations without proof won't serve you well.", reputation: { crown: -10 } }
-        ]
-    },
-    magistrate: {
-        name: "Magistrate Marcus Whitestone",
-        opening: "Ah, a Respected Citizen. These are troubled times. The Duchess's death has sent ripples through the nobility.",
-        choices: [
-            { text: "I want to help investigate.", response: "Interesting. I may have work for someone trustworthy soon. Come find me.", reputation: { crown: 10 } },
-            { text: "What do you know about her death?", response: "Only what evidence shows: she died in her sleep. Whether by poison or foul play... that is the question.", reputation: {} },
-            { text: "I'm staying out of it.", response: "Wise, perhaps. But neutrality has its own costs in times like these.", reputation: { crown: -5 } }
-        ]
-    },
-    aldric: {
-        name: "Aldric Ironhand",
-        opening: "Well met, friend. I'm Aldric, master blacksmith of Thornhaven. Looking for honest work?",
-        choices: [
-            { text: "I'd like to learn the craft.", response: "Good! I'll teach you the smithy trade soon. Expect hard work and fair pay.", reputation: { guild: 10 } },
-            { text: "What's the best weapon you've made?", response: "The Sunblade—a sword said to glow in the presence of evil. Lost now, but someday I'll forge its equal.", reputation: { guild: 5 } },
-            { text: "I'm just looking around.", response: "Fair enough. The forge is always here if you need it.", reputation: {} }
-        ]
-    },
-    lysandra: {
-        name: "Lysandra Goldweight",
-        opening: "Welcome to my trading post! I'm Lysandra. I deal in everything from silks to spices. A clever merchant can make a fortune... or lose one.",
-        choices: [
-            { text: "I'm interested in trade work.", response: "Excellent! I need reliable agents. I'll send you on caravan runs soon. Dangerous, but profitable.", reputation: { guild: 10 } },
-            { text: "What's the most valuable thing you've sold?", response: "A dragon scale. Buyer paid 5,000 gold without haggling. I still wonder what for...", reputation: { guild: 5 } },
-            { text: "Just browsing.", response: "Take your time. But remember—gold doesn't earn itself!", reputation: {} }
-        ]
-    },
-    shadowContact: {
-        name: "Shadow Guild Contact",
-        opening: "*leans from the shadows* You have the look of someone who knows how to keep a secret. The Shadow Guild sees all in this city.",
-        choices: [
-            { text: "I'm listening.", response: "Good. When the time comes, we'll have work for you. Profitable work. Dangerous work.", reputation: { shadow: 15, crown: -5 } },
-            { text: "I'm not interested in crime.", response: "*chuckles* Crime? We prefer 'alternative commerce.' Your loss, Citizen.", reputation: { shadow: -10 } },
-            { text: "I should report you to the Guard.", response: "*vanishes* Try it. They'll find no trace. And you'll have made an enemy.", reputation: { shadow: -20, crown: 5 } }
-        ]
-    },
-    servant: {
-        name: "Duchess's Servant",
-        opening: "*trembling* The Duchess... she's dead! I found her this morning. The Guard won't let me near the manor.",
-        choices: [
-            { text: "I'm so sorry. Is there anything I can do?", response: "Just... remember her kindly. She was a good mistress. Better than most nobles. *sobs*", reputation: { folk: 10 } },
-            { text: "Did you see anything suspicious?", response: "There was a figure leaving late last night. Cloaked. But the Guard didn't believe me!", reputation: {} },
-            { text: "You'll find new employment.", response: "*looks at you with hurt* She was more than a job... *walks away*", reputation: { folk: -10 } }
-        ]
-    },
-    monk: {
-        name: "Wandering Monk",
-        opening: "Peace be upon you, traveler. I wander these roads seeking pilgrims and lost souls.",
-        choices: [
-            { text: "Bless me, Father.", response: "May the light guide your path, and may your choices honor the virtuous. *blesses you*", reputation: { religion: 10 } },
-            { text: "What do you think of the Duchess's death?", response: "A tragedy. But all souls return to the divine. Justice will be served—if not here, then beyond.", reputation: {} },
-            { text: "I don't believe in gods.", response: "*sadly* Then I pray you find meaning elsewhere.", reputation: { religion: -10 } }
-        ]
-    },
-    beggar: {
-        name: "Beggar",
-        opening: "*extends hand* Spare a coin, kind soul? Times are hard, and the nobles care nothing for us common folk.",
-        choices: [
-            { text: "[Give 10 gold]", response: "Bless you! You're kinder than most. May fortune smile on you!", reputation: { folk: 15 }, cost: 10 },
-            { text: "I can't afford it.", response: "Aye, we're all struggling. Good luck to you, friend.", reputation: {} },
-            { text: "Get a job.", response: "*glares* Easy to say with a full belly. *spits*", reputation: { folk: -15 } }
-        ]
-    },
-    hermit: {
-        name: "Hermit",
-        opening: "Hmm? A visitor? I haven't seen another soul in months. The forest is my home now.",
-        choices: [
-            { text: "Why did you leave society?", response: "Too much politics. Too many lies. Out here, the only law is nature's law.", reputation: {} },
-            { text: "Have you heard about the Duchess?", response: "Duchess? *laughs* That's exactly why I left. Murder, intrigue, power games.", reputation: {} },
-            { text: "You're wise to live alone.", response: "Perhaps. Or perhaps I'm a coward. Time will tell.", reputation: {} }
-        ]
-    },
-    mara: {
-        name: "Mara the Apprentice",
-        opening: "Aldric's teaching is outdated. The guild needs new blood, new methods. But he won't listen.",
-        choices: [
-            { text: "Respect your elders.", response: "*scoffs* Respect earns nothing. Skill does.", reputation: { guild: -5 } },
-            { text: "Maybe you're right.", response: "Finally, someone who understands. Change is coming.", reputation: { guild: 10 } }
-        ]
-    },
-    thug: {
-        name: "Street Thug",
-        opening: "You lost, Citizen? This ain't a place for nobles.",
-        choices: [
-            { text: "I have business here.", response: "Heh. Everyone has 'business.' Watch yourself.", reputation: {} },
-            { text: "Are you threatening me?", response: "Not yet. But stick around and we'll see.", reputation: { shadow: -5 } }
-        ]
-    },
-    pickpocket: {
-        name: "Pickpocket",
-        opening: "*eyes you up and down* Nice cloak. Bet it's worth a few gold...",
-        choices: [
-            { text: "Touch it and lose a hand.", response: "*backs off* Alright, alright! Touchy...", reputation: { shadow: -5 } },
-            { text: "[Let them try]", response: "*grins* Smart. You might survive here after all.", reputation: { shadow: 10 } }
-        ]
-    },
-    generic_noble: {
-        name: "Noble Lord",
-        opening: "Ah, a Citizen. Do state your business quickly—I have appointments.",
-        choices: [
-            { text: "Good day to you.", response: "And to you. *walks away*", reputation: {} },
-            { text: "Tell me about the nobility.", response: "We are the pillars of society. Without us, chaos would reign.", reputation: { crown: 5 } }
-        ]
-    },
-    generic_merchant: {
-        name: "Merchant",
-        opening: "Looking to buy? I have the finest goods in Thornhaven!",
-        choices: [
-            { text: "Just browsing.", response: "Come back when you're ready to spend!", reputation: {} },
-            { text: "What's your best deal?", response: "Everything is a good deal if you know its value!", reputation: { guild: 5 } }
-        ]
-    },
-    generic_commoner: {
-        name: "Citizen",
-        opening: "Hello there. Terrible news about the Duchess, isn't it?",
-        choices: [
-            { text: "Indeed. Troubling times.", response: "Let's hope the Guard finds the truth.", reputation: { folk: 5 } },
-            { text: "I don't care about nobles.", response: "Careful—walls have ears in this city.", reputation: {} }
-        ]
-    },
-    generic_craftsman: {
-        name: "Craftsman",
-        opening: "Aye, what can I do for you? These hands are always busy.",
-        choices: [
-            { text: "Impressive work.", response: "Thank you! Craft is what keeps this city running.", reputation: { guild: 5 } },
-            { text: "I'm just passing through.", response: "Fair enough. Stay safe.", reputation: {} }
-        ]
-    },
-    generic_shadow: {
-        name: "Mysterious Figure",
-        opening: "*stares silently*",
-        choices: [
-            { text: "...Hello?", response: "*nods and disappears into shadow*", reputation: {} },
-            { text: "I know what you are.", response: "*smirks* Do you? Prove it.", reputation: { shadow: 5 } }
-        ]
-    }
+// ==================== GAME STATE ====================
+let gameState = {
+    gold: 500,
+    days: 3,
+    reputation: { crown: 50, guild: 50, shadow: 0, folk: 50, religion: 50 },
+    tier: "Cittadino Rispettato"
 };
 
-// ============ GAME ENGINE ============
-class Game {
-    constructor() {
-        this.canvas = document.getElementById('gameCanvas');
-        this.scene = null;
-        this.camera = null;
-        this.renderer = null;
-        this.player = {
-            position: new THREE.Vector3(50, 1, -50),
-            velocity: new THREE.Vector3(),
-            mesh: null,
-            speed: 15,
-            stats: {
-                name: "Noble Citizen",
-                tier: 4,
-                tierName: "Respected Citizen",
-                gold: 500,
-                debt: 0,
-                reputation: { crown: 50, guild: 50, shadow: 0, folk: 50, religion: 50 }
-            }
-        };
-        this.npcs = [];
-        this.keys = {};
-        this.mouse = { x: 0, y: 0, locked: false };
-        this.cameraAngle = 0;
-        this.cameraPitch = 0.3;
-        this.raycaster = new THREE.Raycaster();
-        this.isPaused = false;
-        this.inDialogue = false;
-        this.currentDistrict = "Noble Quarter";
-        this.clock = new THREE.Clock();
-
-        window.game = this;
-    }
-
-    async init() {
-        try {
-            this.showLoading('Initializing 3D engine...', 10);
-            await this.sleep(300);
-
-            this.scene = new THREE.Scene();
-            this.scene.background = new THREE.Color(0x87CEEB);
-            this.scene.fog = new THREE.Fog(0x87CEEB, 80, 280);
-
-            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-
-            this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-            this.renderer.shadowMap.enabled = true;
-            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-            this.showLoading('Creating atmospheric lighting...', 25);
-            await this.sleep(300);
-
-            // Lighting
-            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-            this.scene.add(ambient);
-
-            const sun = new THREE.DirectionalLight(0xffffcc, 0.9);
-            sun.position.set(100, 150, 50);
-            sun.castShadow = true;
-            sun.shadow.mapSize.width = 2048;
-            sun.shadow.mapSize.height = 2048;
-            sun.shadow.camera.left = -200;
-            sun.shadow.camera.right = 200;
-            sun.shadow.camera.top = 200;
-            sun.shadow.camera.bottom = -200;
-            sun.shadow.camera.far = 500;
-            this.scene.add(sun);
-
-            // Terrain
-            this.showLoading('Generating medieval kingdom terrain...', 40);
-            await this.sleep(300);
-            this.createTerrain();
-
-            // Districts
-            this.showLoading('Constructing city districts...', 55);
-            await this.sleep(300);
-            this.createDistricts();
-            this.createRoads();
-
-            // Wilderness
-            this.showLoading('Planting wilderness zones...', 70);
-            await this.sleep(300);
-            this.createWilderness();
-
-            // Player
-            this.showLoading('Creating player character...', 80);
-            await this.sleep(200);
-            this.createPlayer();
-
-            // NPCs
-            this.showLoading('Placing NPCs across the kingdom...', 90);
-            await this.sleep(300);
-            this.createNPCs();
-
-            // Controls
-            this.setupControls();
-
-            this.showLoading('Kingdom of Thornhaven ready!', 100);
-            await this.sleep(600);
-            this.hideLoading();
-        } catch (error) {
-            console.error('Error during initialization:', error);
-            alert('Error loading game: ' + error.message);
-        }
-    }
-
-    createTerrain() {
-        const terrainGeo = new THREE.PlaneGeometry(600, 600, 80, 80);
-        const positions = terrainGeo.attributes.position;
-        for (let i = 0; i < positions.count; i++) {
-            const x = positions.getX(i);
-            const y = positions.getY(i);
-            const dist = Math.sqrt(x*x + y*y);
-            let h = Math.sin(x*0.02)*3 + Math.cos(y*0.02)*3;
-            if (dist < 150) h *= 0.1;
-            positions.setZ(i, h);
-        }
-        terrainGeo.computeVertexNormals();
-
-        const terrainMat = new THREE.MeshStandardMaterial({ color: 0x4a6741, roughness: 0.9 });
-        const terrain = new THREE.Mesh(terrainGeo, terrainMat);
-        terrain.rotation.x = -Math.PI/2;
-        terrain.receiveShadow = true;
-        this.scene.add(terrain);
-    }
-
-    createDistricts() {
-        this.buildDistrict("Noble Quarter", 50, -50, 80, 0x8b7355, 'noble');
-        this.buildDistrict("Market Plaza", 50, 50, 70, 0xa08060, 'market');
-        this.buildDistrict("Craftsman Quarter", -50, 50, 70, 0x6b5d4f, 'craftsman');
-        this.buildDistrict("Undercity", -50, -50, 60, 0x3a3229, 'undercity');
-    }
-
-    buildDistrict(name, cx, cz, size, color, type) {
-        const plazaGeo = new THREE.BoxGeometry(size, 0.2, size);
-        const plazaMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
-        const plaza = new THREE.Mesh(plazaGeo, plazaMat);
-        plaza.position.set(cx, 0.1, cz);
-        plaza.receiveShadow = true;
-        this.scene.add(plaza);
-
-        const count = 10;
-        for (let i = 0; i < count; i++) {
-            const angle = (i/count) * Math.PI * 2;
-            const radius = size * 0.4;
-            const x = cx + Math.cos(angle) * radius;
-            const z = cz + Math.sin(angle) * radius;
-            this.buildBuilding(x, z, type);
-        }
-
-        this.buildLandmark(cx, cz, type);
-    }
-
-    buildBuilding(x, z, type) {
-        const w = Math.random()*6 + 6;
-        const d = Math.random()*6 + 6;
-        const h = Math.random()*10 + 8;
-
-        let wallColor;
-        switch(type) {
-            case 'noble': wallColor = 0xc9b79c; break;
-            case 'market': wallColor = 0xb89968; break;
-            case 'craftsman': wallColor = 0x8b7355; break;
-            case 'undercity': wallColor = 0x4a3f35; break;
-            default: wallColor = 0x999999;
-        }
-
-        const wallGeo = new THREE.BoxGeometry(w, h, d);
-        const wallMat = new THREE.MeshStandardMaterial({ color: wallColor });
-        const walls = new THREE.Mesh(wallGeo, wallMat);
-        walls.position.set(x, h/2, z);
-        walls.castShadow = true;
-        walls.receiveShadow = true;
-        this.scene.add(walls);
-
-        const roofGeo = new THREE.ConeGeometry(w*0.8, h*0.3, 4);
-        const roofMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
-        const roof = new THREE.Mesh(roofGeo, roofMat);
-        roof.position.set(x, h + h*0.15, z);
-        roof.rotation.y = Math.PI/4;
-        roof.castShadow = true;
-        this.scene.add(roof);
-
-        const winMat = new THREE.MeshStandardMaterial({
-            color: 0x4a6a8a, emissive: 0x2a4a6a, emissiveIntensity: 0.4
-        });
-        const floors = Math.floor(h/5);
-        for (let f = 0; f < floors; f++) {
-            for (let i = 0; i < 2; i++) {
-                const winGeo = new THREE.BoxGeometry(1.2, 1.5, 0.2);
-                const win = new THREE.Mesh(winGeo, winMat);
-                win.position.set(x + (i-0.5)*w*0.4, (f+0.5)*5 - h/2 + h/2, z + d/2 + 0.1);
-                this.scene.add(win);
-            }
-        }
-    }
-
-    buildLandmark(cx, cz, type) {
-        let mesh;
-        switch(type) {
-            case 'noble':
-                const fGeo = new THREE.CylinderGeometry(4, 5, 3, 8);
-                const fMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
-                mesh = new THREE.Mesh(fGeo, fMat);
-                mesh.position.set(cx, 1.5, cz);
-                break;
-            case 'market':
-                const mGeo = new THREE.BoxGeometry(8, 4, 6);
-                const mMat = new THREE.MeshStandardMaterial({ color: 0xd2691e });
-                mesh = new THREE.Mesh(mGeo, mMat);
-                mesh.position.set(cx, 2, cz);
-                break;
-            case 'craftsman':
-                const cGeo = new THREE.BoxGeometry(6, 5, 6);
-                const cMat = new THREE.MeshStandardMaterial({
-                    color: 0x4a4a4a, emissive: 0xff4400, emissiveIntensity: 0.5
-                });
-                mesh = new THREE.Mesh(cGeo, cMat);
-                mesh.position.set(cx, 2.5, cz);
-                const fLight = new THREE.PointLight(0xff6600, 1, 20);
-                fLight.position.set(cx, 3, cz);
-                this.scene.add(fLight);
-                break;
-            case 'undercity':
-                const oGeo = new THREE.ConeGeometry(2, 10, 4);
-                const oMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
-                mesh = new THREE.Mesh(oGeo, oMat);
-                mesh.position.set(cx, 5, cz);
-                break;
-        }
-        mesh.castShadow = true;
-        this.scene.add(mesh);
-    }
-
-    createRoads() {
-        const roadMat = new THREE.MeshStandardMaterial({ color: 0x6b5d4f, roughness: 0.9 });
-        const r1 = new THREE.Mesh(new THREE.BoxGeometry(400, 0.15, 8), roadMat);
-        r1.position.set(0, 0.15, 0);
-        r1.receiveShadow = true;
-        this.scene.add(r1);
-
-        const r2 = new THREE.Mesh(new THREE.BoxGeometry(8, 0.15, 400), roadMat);
-        r2.position.set(0, 0.15, 0);
-        r2.receiveShadow = true;
-        this.scene.add(r2);
-    }
-
-    createWilderness() {
-        const pathMat = new THREE.MeshStandardMaterial({ color: 0x8b7355, roughness: 0.95 });
-        const path = new THREE.Mesh(new THREE.BoxGeometry(200, 0.1, 5), pathMat);
-        path.position.set(150, 0.1, 0);
-        path.receiveShadow = true;
-        this.scene.add(path);
-
-        const treeMat = new THREE.MeshStandardMaterial({ color: 0x2d4a2b });
-        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3f35 });
-        for (let i = 0; i < 60; i++) {
-            const x = -150 + (Math.random()-0.5)*100;
-            const z = (Math.random()-0.5)*100;
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.7, 6, 8), trunkMat);
-            trunk.position.set(x, 3, z);
-            trunk.castShadow = true;
-            this.scene.add(trunk);
-            const foliage = new THREE.Mesh(new THREE.ConeGeometry(3, 8, 8), treeMat);
-            foliage.position.set(x, 10, z);
-            foliage.castShadow = true;
-            this.scene.add(foliage);
-        }
-    }
-
-    createPlayer() {
-        // Use cylinder + sphere instead of CapsuleGeometry for compatibility
-        const group = new THREE.Group();
-        
-        const bodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 16);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x4a5a6a });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        body.position.y = 0.6;
-        body.castShadow = true;
-        group.add(body);
-        
-        const headGeo = new THREE.SphereGeometry(0.3, 16, 16);
-        const head = new THREE.Mesh(headGeo, bodyMat);
-        head.position.y = 1.5;
-        head.castShadow = true;
-        group.add(head);
-        
-        this.player.mesh = group;
-        this.player.mesh.position.copy(this.player.position);
-        this.scene.add(this.player.mesh);
-    }
-
-    createNPCs() {
-        const npcData = [
-            { name: "Guard Captain Thorne", pos: [55, -45], type: "guard", dialogue: "guardCaptain" },
-            { name: "Magistrate Marcus Whitestone", pos: [45, -55], type: "noble", dialogue: "magistrate" },
-            { name: "Duchess's Servant", pos: [50, -50], type: "commoner", dialogue: "servant" },
-            { name: "Noble Lord Harwick", pos: [60, -50], type: "noble", dialogue: "generic_noble" },
-            { name: "Lysandra Goldweight", pos: [50, 50], type: "merchant", dialogue: "lysandra" },
-            { name: "Market Trader", pos: [55, 55], type: "merchant", dialogue: "generic_merchant" },
-            { name: "Street Vendor", pos: [45, 55], type: "commoner", dialogue: "generic_commoner" },
-            { name: "Beggar", pos: [50, 45], type: "commoner", dialogue: "beggar" },
-            { name: "Aldric Ironhand", pos: [-50, 50], type: "craftsman", dialogue: "aldric" },
-            { name: "Mara the Apprentice", pos: [-55, 55], type: "craftsman", dialogue: "mara" },
-            { name: "Guild Master", pos: [-45, 50], type: "craftsman", dialogue: "generic_craftsman" },
-            { name: "Shadow Guild Contact", pos: [-50, -50], type: "shadow", dialogue: "shadowContact" },
-            { name: "Mysterious Figure", pos: [-55, -45], type: "shadow", dialogue: "generic_shadow" },
-            { name: "Street Thug", pos: [-45, -55], type: "shadow", dialogue: "thug" },
-            { name: "Wandering Monk", pos: [120, 0], type: "monk", dialogue: "monk" },
-            { name: "Hermit", pos: [-150, 0], type: "commoner", dialogue: "hermit" },
-            { name: "Concerned Citizen", pos: [50, -60], type: "commoner", dialogue: "generic_commoner" },
-            { name: "Baker", pos: [60, 50], type: "merchant", dialogue: "generic_merchant" },
-            { name: "Blacksmith Helper", pos: [-50, 55], type: "craftsman", dialogue: "generic_craftsman" },
-            { name: "Pickpocket", pos: [-60, -50], type: "shadow", dialogue: "pickpocket" }
-        ];
-
-        npcData.forEach(data => {
-            const group = new THREE.Group();
-            
-            let color;
-            switch(data.type) {
-                case 'guard': color = 0x8b4513; break;
-                case 'noble': color = 0x8b008b; break;
-                case 'merchant': color = 0xdaa520; break;
-                case 'craftsman': color = 0x696969; break;
-                case 'shadow': color = 0x2f4f4f; break;
-                case 'monk': color = 0x8b6914; break;
-                default: color = 0x708090;
-            }
-            
-            const bodyMat = new THREE.MeshStandardMaterial({ color });
-            
-            const bodyGeo = new THREE.CylinderGeometry(0.4, 0.4, 1.1, 16);
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 0.55;
-            body.castShadow = true;
-            group.add(body);
-            
-            const headGeo = new THREE.SphereGeometry(0.25, 16, 16);
-            const head = new THREE.Mesh(headGeo, bodyMat);
-            head.position.y = 1.35;
-            head.castShadow = true;
-            group.add(head);
-            
-            group.position.set(data.pos[0], 0, data.pos[1]);
-            group.userData = { name: data.name, dialogue: data.dialogue, isNPC: true };
-            this.scene.add(group);
-            this.npcs.push(group);
-        });
-    }
-
-    setupControls() {
-        window.addEventListener('keydown', (e) => {
-            this.keys[e.key.toLowerCase()] = true;
-            if (e.key === 'Tab') { e.preventDefault(); this.toggleSheet(); }
-            if (e.key === 'Escape') { e.preventDefault(); this.togglePause(); }
-        });
-        window.addEventListener('keyup', (e) => { this.keys[e.key.toLowerCase()] = false; });
-
-        this.canvas.addEventListener('click', () => {
-            if (!this.mouse.locked && !this.inDialogue) {
-                this.canvas.requestPointerLock();
-            }
-        });
-
-        document.addEventListener('pointerlockchange', () => {
-            this.mouse.locked = document.pointerLockElement === this.canvas;
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (this.mouse.locked && !this.inDialogue) {
-                this.cameraAngle -= e.movementX * 0.003;
-                this.cameraPitch -= e.movementY * 0.003;
-                this.cameraPitch = Math.max(-0.5, Math.min(1.2, this.cameraPitch));
-            }
-        });
-
-        this.canvas.addEventListener('click', (e) => {
-            if (this.inDialogue) return;
-            const mouse2 = new THREE.Vector2(
-                (e.clientX/window.innerWidth)*2-1,
-                -(e.clientY/window.innerHeight)*2+1
-            );
-            this.raycaster.setFromCamera(mouse2, this.camera);
-            
-            // Check all NPC children
-            const allNPCMeshes = [];
-            this.npcs.forEach(npc => {
-                npc.traverse(child => {
-                    if (child.isMesh) {
-                        child.userData = npc.userData;
-                        allNPCMeshes.push(child);
-                    }
-                });
-            });
-            
-            const hits = this.raycaster.intersectObjects(allNPCMeshes);
-            if (hits.length > 0 && hits[0].distance < 10) {
-                this.startDialogue(hits[0].object.userData);
-            }
-        });
-
-        window.addEventListener('resize', () => {
-            this.camera.aspect = window.innerWidth/window.innerHeight;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        document.getElementById('newGameBtn').addEventListener('click', () => this.startGame());
-        document.getElementById('creditsBtn').addEventListener('click', () => {
-            alert('Crowns of Circumstance\nPhase 1: World Foundation\n\nA medieval RPG of choice and consequence.');
-        });
-        document.getElementById('closeSheet').addEventListener('click', () => this.hideSheet());
-        document.getElementById('resumeBtn').addEventListener('click', () => this.togglePause());
-        document.getElementById('quitBtn').addEventListener('click', () => {
-            this.isPaused = true;
-            document.getElementById('pauseMenu').style.display = 'none';
-            document.getElementById('mainMenu').style.display = 'flex';
-            document.getElementById('gameHUD').style.display = 'none';
-            document.getElementById('crosshair').style.display = 'none';
-            document.exitPointerLock();
-        });
-    }
-
-    startGame() {
-        document.getElementById('mainMenu').style.display = 'none';
-        document.getElementById('gameHUD').style.display = 'block';
-        document.getElementById('crosshair').style.display = 'block';
-        this.updateStatsUI();
-        this.animate();
-    }
-
-    animate() {
-        if (this.isPaused) return;
-        requestAnimationFrame(() => this.animate());
-
-        const dt = Math.min(this.clock.getDelta(), 0.1);
-
-        if (!this.inDialogue) {
-            const move = new THREE.Vector3();
-            if (this.keys['w']) move.z -= 1;
-            if (this.keys['s']) move.z += 1;
-            if (this.keys['a']) move.x -= 1;
-            if (this.keys['d']) move.x += 1;
-
-            if (move.length() > 0) {
-                move.normalize();
-                const rotated = new THREE.Vector3();
-                rotated.x = move.x * Math.cos(this.cameraAngle) - move.z * Math.sin(this.cameraAngle);
-                rotated.z = move.x * Math.sin(this.cameraAngle) + move.z * Math.cos(this.cameraAngle);
-                this.player.velocity.x = rotated.x * this.player.speed * dt;
-                this.player.velocity.z = rotated.z * this.player.speed * dt;
-            } else {
-                this.player.velocity.multiplyScalar(0.8);
-            }
-
-            this.player.position.add(this.player.velocity);
-            this.player.mesh.position.copy(this.player.position);
-        }
-
-        const dist = 12;
-        const height = 4 + Math.sin(this.cameraPitch) * 8;
-        const camX = this.player.position.x + Math.sin(this.cameraAngle) * dist;
-        const camZ = this.player.position.z + Math.cos(this.cameraAngle) * dist;
-        this.camera.position.set(camX, this.player.position.y + height, camZ);
-        this.camera.lookAt(this.player.position.x, this.player.position.y + 1.5, this.player.position.z);
-
-        const pos = this.player.position;
-        let district = "Thornhaven Outskirts";
-        if (pos.x > 10 && pos.x < 90 && pos.z > -90 && pos.z < -10) district = "Noble Quarter";
-        else if (pos.x > 10 && pos.x < 90 && pos.z > 10 && pos.z < 90) district = "Market Plaza";
-        else if (pos.x > -90 && pos.x < -10 && pos.z > 10 && pos.z < 90) district = "Craftsman Quarter";
-        else if (pos.x > -90 && pos.x < -10 && pos.z > -90 && pos.z < -10) district = "Undercity";
-        else if (pos.x > 90) district = "Eastmarch Road";
-        else if (pos.x < -90) district = "Western Forest";
-
-        if (district !== this.currentDistrict) {
-            this.currentDistrict = district;
-            document.getElementById('locationName').textContent = district;
-        }
-
-        let nearest = null;
-        let nearestDist = 8;
-        for (let npc of this.npcs) {
-            const d = pos.distanceTo(npc.position);
-            if (d < nearestDist) {
-                nearestDist = d;
-                nearest = npc;
-            }
-        }
-        const label = document.getElementById('npcLabel');
-        const crosshair = document.getElementById('crosshair');
-        if (nearest) {
-            const screenPos = nearest.position.clone().add(new THREE.Vector3(0, 2.5, 0));
-            screenPos.project(this.camera);
-            const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-            const y = (-screenPos.y * 0.5 + 0.5) * window.innerHeight;
-            label.style.display = 'block';
-            label.style.left = x + 'px';
-            label.style.top = y + 'px';
-            label.textContent = nearest.userData.name + " [Click to talk]";
-            crosshair.classList.add('active');
-        } else {
-            label.style.display = 'none';
-            crosshair.classList.remove('active');
-        }
-
-        this.renderer.render(this.scene, this.camera);
-    }
-
-    startDialogue(npcData) {
-        const dialogue = DIALOGUE_DATA[npcData.dialogue];
-        if (!dialogue) return;
-        this.inDialogue = true;
-        document.exitPointerLock();
-        this.showDialogueUI(dialogue.name, dialogue.opening, dialogue.choices);
-    }
-
-    showDialogueUI(name, text, choices) {
-        document.getElementById('dialogueBox').style.display = 'block';
-        document.getElementById('npcName').textContent = name;
-        document.getElementById('dialogueText').textContent = text;
-        const container = document.getElementById('dialogueChoices');
-        container.innerHTML = '';
-        choices.forEach(choice => {
-            const btn = document.createElement('button');
-            btn.className = 'choice-btn';
-            btn.textContent = choice.text;
-            btn.addEventListener('click', () => this.handleChoice(choice, name));
-            container.appendChild(btn);
-        });
-    }
-
-    handleChoice(choice, npcName) {
-        if (choice.reputation) {
-            for (let [faction, change] of Object.entries(choice.reputation)) {
-                this.player.stats.reputation[faction] += change;
-                this.player.stats.reputation[faction] = Math.max(0, Math.min(200, this.player.stats.reputation[faction]));
-            }
-        }
-        if (choice.cost) {
-            this.player.stats.gold -= choice.cost;
-        }
-        this.updateStatsUI();
-
-        document.getElementById('dialogueText').textContent = choice.response;
-        const container = document.getElementById('dialogueChoices');
-        container.innerHTML = '';
-        const btn = document.createElement('button');
-        btn.className = 'choice-btn';
-        btn.textContent = "[End conversation]";
-        btn.addEventListener('click', () => this.endDialogue());
-        container.appendChild(btn);
-    }
-
-    endDialogue() {
-        document.getElementById('dialogueBox').style.display = 'none';
-        this.inDialogue = false;
-    }
-
-    updateStatsUI() {
-        const s = this.player.stats;
-        document.getElementById('playerName').textContent = s.name;
-        document.getElementById('playerStatus').textContent = `Tier ${s.tier}: ${s.tierName}`;
-        document.getElementById('playerGold').textContent = `Gold: ${s.gold}`;
-        document.getElementById('sheetTier').textContent = `${s.tierName} (Tier ${s.tier})`;
-        document.getElementById('sheetGold').textContent = `${s.gold} gold`;
-        document.getElementById('sheetDebt').textContent = `${s.debt} gold`;
-
-        this.updateBar('repCrown', 'repCrownText', s.reputation.crown);
-        this.updateBar('repGuild', 'repGuildText', s.reputation.guild);
-        this.updateBar('repShadow', 'repShadowText', s.reputation.shadow);
-        this.updateBar('repFolk', 'repFolkText', s.reputation.folk);
-        this.updateBar('repReligion', 'repReligionText', s.reputation.religion);
-    }
-
-    updateBar(barId, textId, value) {
-        document.getElementById(barId).style.width = (value/200*100) + '%';
-        document.getElementById(textId).textContent = `${value}/200`;
-    }
-
-    toggleSheet() {
-        const sheet = document.getElementById('characterSheet');
-        sheet.style.display = sheet.style.display === 'block' ? 'none' : 'block';
-    }
-
-    hideSheet() { document.getElementById('characterSheet').style.display = 'none'; }
-
-    togglePause() {
-        if (this.inDialogue) return;
-        const menu = document.getElementById('pauseMenu');
-        if (menu.style.display === 'flex') {
-            menu.style.display = 'none';
-            this.isPaused = false;
-            this.clock.start();
-            this.animate();
-        } else {
-            menu.style.display = 'flex';
-            this.isPaused = true;
-            document.exitPointerLock();
-        }
-    }
-
-    showLoading(text, percent) {
-        document.getElementById('loadingText').textContent = text;
-        document.getElementById('loadingProgress').style.width = percent + '%';
-    }
-
-    hideLoading() { document.getElementById('loadingScreen').style.display = 'none'; }
-
-    sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+const log = document.getElementById('log');
+const choicesDiv = document.getElementById('choices');
+
+// ==================== CORE FUNCTIONS ====================
+function updateUI() {
+    document.getElementById('gold').textContent = gameState.gold;
+    document.getElementById('days').textContent = gameState.days;
+    document.getElementById('tier').textContent = gameState.tier + " (Tier 4)";
+
+    document.getElementById('valCrown').textContent = gameState.reputation.crown;
+    document.getElementById('valGuild').textContent = gameState.reputation.guild;
+    document.getElementById('valShadow').textContent = gameState.reputation.shadow;
+    document.getElementById('valFolk').textContent = gameState.reputation.folk;
+    document.getElementById('valReligion').textContent = gameState.reputation.religion;
+
+    document.getElementById('barCrown').style.width = (gameState.reputation.crown / 2) + '%';
+    document.getElementById('barGuild').style.width = (gameState.reputation.guild / 2) + '%';
+    document.getElementById('barShadow').style.width = (gameState.reputation.shadow / 2) + '%';
+    document.getElementById('barFolk').style.width = (gameState.reputation.folk / 2) + '%';
+    document.getElementById('barReligion').style.width = (gameState.reputation.religion / 2) + '%';
 }
 
-window.addEventListener('load', async () => {
-    const game = new Game();
-    await game.init();
-});
+function addText(text) {
+    log.innerHTML += `<br><br>${text}`;
+    log.scrollTop = log.scrollHeight;
+}
+
+function clearChoices() { choicesDiv.innerHTML = ''; }
+
+function addChoice(text, callback) {
+    const btn = document.createElement('button');
+    btn.textContent = text;
+    btn.onclick = () => { clearChoices(); callback(); };
+    choicesDiv.appendChild(btn);
+}
+
+// ==================== GAME START ====================
+function startPrologue() {
+    addText("<strong>Qual è la tua prima mossa?</strong>");
+    addChoice("1. Correre alla Sala del Magistrato e apparire innocente", loyaltyPath);
+    addChoice("2. Distruggere le prove del tuo ultimo incontro con la Duchessa", treacheryPath);
+    addChoice("3. Confessare tutto e collaborare con il Magistrato", justicePath);
+}
+
+function loyaltyPath() {
+    addText("Ti presenti con dignità. Il Capitano non ti sospetta. Ricevi una lettera segreta dalla Duchessa.");
+    gameState.reputation.crown += 25;
+    gameState.reputation.folk += 10;
+    updateUI();
+    endPrologue();
+}
+
+function treacheryPath() {
+    addText("Un testimone ti vede mentre bruci le lettere. La Shadow Guild ti contatta poco dopo.");
+    gameState.reputation.shadow += 35;
+    gameState.reputation.crown -= 25;
+    updateUI();
+    endPrologue();
+}
+
+function justicePath() {
+    addText("Il Magistrato ti concede immunità e ti assume come suo investigatore speciale.");
+    gameState.reputation.crown += 35;
+    gameState.reputation.folk += 25;
+    updateUI();
+    endPrologue();
+}
+
+function endPrologue() {
+    addText("────────────────────<br><strong>Prologo completato.</strong><br>Ora scegli la tua strada a Thornhaven.");
+    addChoice("→ Diventa Fabbro (Craftsman Quarter)", blacksmithLoop);
+    addChoice("→ Diventa Mercante (Market Plaza)", merchantLoop);
+    addChoice("→ Diventa Investigatore", investigatorLoop);
+    addChoice("→ Vedere i finali possibili", showEndings);
+}
+
+// ==================== JOBS ====================
+function blacksmithLoop() {
+    document.getElementById('location').textContent = "📍 Craftsman Quarter — Fucina di Aldric";
+    addText("<strong>Fucina — Settimana " + gameState.days + "</strong>");
+    addChoice("Lavora onestamente per la Guardia (+40 oro, +18 Crown Loyalty)", () => {
+        gameState.gold += 40; gameState.reputation.crown += 18; gameState.reputation.guild += 15;
+        gameState.days += 4; updateUI(); nextWeek(blacksmithLoop);
+    });
+    addChoice("Fabbrica armi illegali per la Shadow Guild (+90 oro, +35 Shadow)", () => {
+        gameState.gold += 90; gameState.reputation.shadow += 35; gameState.reputation.crown -= 20;
+        gameState.days += 4; updateUI(); nextWeek(blacksmithLoop);
+    });
+}
+
+function merchantLoop() {
+    document.getElementById('location').textContent = "📍 Market Plaza — Carovane di Lysandra";
+    addText("<strong>Carovana — Giorno " + gameState.days + "</strong>");
+    addChoice("Rotta sicura (+120 oro, +22 Guild)", () => {
+        gameState.gold += 120; gameState.reputation.guild += 22;
+        gameState.days += 5; updateUI(); nextWeek(merchantLoop);
+    });
+    addChoice("Rotta pericolosa nella foresta (+250 oro)", () => {
+        if (Math.random() > 0.45) {
+            gameState.gold += 250; gameState.reputation.shadow += 20;
+            addText("✅ Viaggio di successo!");
+        } else {
+            gameState.gold += 60;
+            addText("❌ I banditi ti hanno attaccato.");
+        }
+        gameState.days += 5; updateUI(); nextWeek(merchantLoop);
+    });
+}
+
+function investigatorLoop() {
+    document.getElementById('location').textContent = "📍 Noble Quarter — Ufficio del Magistrato";
+    addText("<strong>Indagine — Giorno " + gameState.days + "</strong>");
+    addChoice("Accusa la gang (+60 oro, +28 Crown)", () => {
+        gameState.gold += 60; gameState.reputation.crown += 28;
+        gameState.days += 4; updateUI(); nextWeek(investigatorLoop);
+    });
+    addChoice("Aiuta il colpevole a scappare (+40 Folk, -22 Crown)", () => {
+        gameState.reputation.folk += 40; gameState.reputation.crown -= 22; gameState.reputation.shadow += 18;
+        gameState.days += 4; updateUI(); nextWeek(investigatorLoop);
+    });
+}
+
+function nextWeek(nextFunction) {
+    if (gameState.days >= 22) checkEnding();
+    else nextFunction();
+}
+
+// ==================== ENDINGS ====================
+function checkEnding() {
+    clearChoices();
+    let ending = "";
+    if (gameState.reputation.crown >= 145) 
+        ending = "Sei stato incoronato Re.<br><strong>FINAL: IL RE</strong>";
+    else if (gameState.gold > 3000) 
+        ending = "Ti ritiri come nobile ricchissimo.<br><strong>FINAL: NOBILE RICCO</strong>";
+    else if (gameState.reputation.shadow > 140) 
+        ending = "Diventi il signore delle ombre.<br><strong>FINAL: RE DEI FUORILEGGE</strong>";
+    else if (gameState.reputation.folk > 130) 
+        ending = "Il popolo ti ama come un eroe.<br><strong>FINAL: EROE DEL POPOLO</strong>";
+    else 
+        ending = "Hai perso tutto e vivi per strada.<br><strong>FINAL: MENDICANTE</strong>";
+
+    log.innerHTML += `<div class="ending">${ending}<br><br>Gioco completato in ${gameState.days} giorni.</div>`;
+    addChoice("Gioca di nuovo", () => location.reload());
+}
+
+function showEndings() {
+    addText("<strong>Finali disponibili:</strong><br>• Il Re (alta Crown Loyalty)<br>• Nobile Ricco (molto Oro)<br>• Re dei Fuorilegge (alta Shadow)<br>• Eroe del Popolo (alta Common Trust)<br>• Mendicante");
+    addChoice("Torna al gioco", startPrologue);
+}
+
+// ==================== AVVIO IMMEDIATO ====================
+updateUI();
+startPrologue();
 </script>
 </body>
 </html>
+
